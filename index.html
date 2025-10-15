@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Marker AR (Z移動)</title>
 
-  <!-- three と mindar の ESM を importmap で解決 -->
   <script type="importmap">
   {
     "imports": {
@@ -20,10 +19,13 @@
     body{margin:0;overflow:hidden}
     #hud{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
          padding:10px;background:rgba(0,0,0,.25);backdrop-filter:blur(4px);z-index:10}
+    #status{position:fixed;top:8px;left:50%;transform:translateX(-50%);
+            padding:6px 10px;border-radius:8px;font-weight:700;z-index:11;color:#fff}
     button,label,input{font-size:14px}
   </style>
 </head>
 <body>
+  <div id="status">INIT…</div>
   <div id="hud">
     <button data-move="forward">前へ(Z+)</button>
     <button data-move="back">後ろへ(Z-)</button>
