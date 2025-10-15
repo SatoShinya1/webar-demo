@@ -13,7 +13,7 @@ import { MindARThree } from 'mindar-image-three';
   scene.add(new THREE.AmbientLight(0xffffff, 1));
 
   // アンカー
-  const anchor = mindarThree.addAnchor(0);
+  const anchor = mindarThree.addAnchor(1);//hennkou
 
   // プレースホルダー（まずは立方体でOK）
   const group = new THREE.Group();
