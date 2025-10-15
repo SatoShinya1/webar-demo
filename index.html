@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Marker AR (Z移動)</title>
 
-  <!-- A) importmap: three と mindar-image-three をESMで読み込む -->
+  <!-- three/mindar を ES Modules で読み込む -->
   <script type="importmap">
   {
     "imports": {
@@ -33,7 +33,7 @@
     <button id="reset">リセット</button>
   </div>
 
-  <!-- B) あなたのアプリコード（ESM） -->
+  <!-- あなたのアプリ本体 -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>
