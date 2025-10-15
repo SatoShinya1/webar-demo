@@ -1,31 +1,96 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Camera Test</title>
+<title>MindAR Single File</title>
 <style>
-  html,body{height:100%;margin:0} body{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;background:#111;color:#fff;font-family:system-ui;}
-  video{width:90vw;height:auto;background:#000;border:1px solid #333}
-  #err{max-width:90vw;white-space:pre-wrap;background:#900;padding:8px;border-radius:6px;display:none}
-  button{font-size:18px;padding:12px 20px;border-radius:10px}
+  html,body{margin:0;overflow:hidden}
+  #status{position:fixed;top:8px;left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:8px;
+          font-weight:700;z-index:11;color:#fff;background:rgba(0,0,0,.6);font-family:system-ui}
+  #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0009;z-index:20}
+  #start button{font-size:18px;padding:12px 20px;border-radius:10px}
+  #error{position:fixed;left:0;right:0;top:0;background:#c00;color:#fff;padding:8px;display:none;z-index:30;
+         font-family:system-ui;white-space:pre-wrap}
 </style>
-<h1>Camera Test</h1>
-<div id="err"></div>
-<video id="v" playsinline autoplay muted></video>
-<div>
-  <button onclick="startCam('environment')">Start (Back)</button>
-  <button onclick="startCam('user')">Start (Front)</button>
-</div>
-<script>
-const v = document.getElementById('v'); const errEl=document.getElementById('err');
-function showErr(e){ errEl.style.display='block'; errEl.textContent = 'ERROR: ' + (e?.message||e); }
-async function startCam(which){
-  try{
-    errEl.style.display='none';
-    if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
-    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode: which}, audio:false});
-    v.srcObject = stream;
-  }catch(e){
-    showErr(e);
-  }
+<div id="error"></div>
+<div id="status">INIT…</div>
+<div id="start"><button id="startBtn">Start AR</button></div>
+
+<script type="module">
+const $ = id=>document.getElementById(id);
+const showError = msg => { const e=$('error'); e.style.display='block'; e.textContent='ERROR: '+msg; };
+const setStatus = (t, ok=false)=>{ const s=$('status'); s.textContent=t; s.style.background=ok?'rgba(0,160,0,.85)':'rgba(0,0,0,.6)'; };
+window.addEventListener('error', ev=>showError(ev.message||String(ev.error||ev)));
+window.addEventListener('unhandledrejection', ev=>showError(ev.reason?.message||String(ev.reason||ev)));
+
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+import { MindARThree } from 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.esm.js';
+
+setStatus('準備中…');
+
+let mindarThree, anchor, renderer, scene, camera;
+
+async function setup(){
+  mindarThree = new MindARThree({
+    container: document.body,
+    imageTargetSrc: 'https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind',
+    uiScanning: true, uiLoading: true, maxTrack:1,
+    videoSetting: { facingMode: { ideal: 'environment' } }
+  });
+  ({renderer, scene, camera} = mindarThree);
+  scene.add(new THREE.AmbientLight(0xffffff,1));
+
+  anchor = mindarThree.addAnchor(0);
+  anchor.onTargetFound = ()=> setStatus('FOUND #0', true);
+  anchor.onTargetLost  = ()=> setStatus('LOST  #0', false);
+
+  // 可視化
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.2,0.2),
+    new THREE.MeshBasicMaterial({color:0x00ff00,transparent:true,opacity:0.4,side:THREE.DoubleSide})
+  );
+  plane.rotation.x = -Math.PI/2;
+  anchor.group.add(plane);
+  anchor.group.add(new THREE.AxesHelper(0.15));
+
+  // モデル（立方体）
+  const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(0.15,0.15,0.15),
+    new THREE.MeshStandardMaterial({ roughness:.8, color: 0x5555ff })
+  );
+  const group = new THREE.Group();
+  group.add(cube);
+  anchor.group.add(group);
+
+  const clock = new THREE.Clock();
+  (function loop(){
+    const dt = clock.getDelta();
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  })();
 }
+
+await setup();
+
+$('startBtn').onclick = async ()=>{
+  try{
+    setStatus('カメラ起動…');
+    await mindarThree.start(); // ここで許可ダイアログ
+    $('start').style.display='none';
+    setStatus('スキャン中…（カード画像を映してください）');
+  }catch(e){
+    // 前面にフォールバック
+    try{ mindarThree.stop(); }catch{}
+    try{ mindarThree.video.video.srcObject?.getTracks().forEach(t=>t.stop()); }catch{}
+    mindarThree.params.videoSetting = { facingMode:'user' };
+    try{
+      setStatus('前面で再試行…');
+      await mindarThree.start();
+      $('start').style.display='none';
+      setStatus('スキャン中（前面）…');
+    }catch(e2){
+      showError(e2?.message||String(e2));
+      setStatus('カメラ開始失敗：Safariのサイト別設定とHTTPSを確認', false);
+    }
+  }
+};
 </script>
