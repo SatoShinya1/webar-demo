@@ -63,3 +63,19 @@ import { MindARThree } from 'mindar-image-three';
   }
   animate();
 })();
+
+
+// 追加: 見つかった/見失ったイベント
+anchor.onTargetFound = () => { console.log('FOUND marker #0'); };
+anchor.onTargetLost  = () => { console.log('LOST marker #0'); };
+
+// 追加: デバッグ表示（アンカー直下）
+const debugPlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.2, 0.2),
+  new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+);
+debugPlane.rotation.x = -Math.PI/2; // 床向きに
+const axis = new THREE.AxesHelper(0.15); // RGB軸
+anchor.group.add(debugPlane);
+anchor.group.add(axis);
+
