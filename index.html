@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Marker AR (Z移動)</title>
 
-  <!-- three/mindar を ES Modules で読み込む -->
+  <!-- three と mindar の ESM を importmap で解決 -->
   <script type="importmap">
   {
     "imports": {
       "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
       "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-      "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+      "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.esm.js"
     }
   }
   </script>
@@ -19,7 +19,7 @@
   <style>
     body{margin:0;overflow:hidden}
     #hud{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
-         padding:10px;background:rgba(0,0,0,.25);backdrop-filter:blur(4px)}
+         padding:10px;background:rgba(0,0,0,.25);backdrop-filter:blur(4px);z-index:10}
     button,label,input{font-size:14px}
   </style>
 </head>
@@ -33,7 +33,6 @@
     <button id="reset">リセット</button>
   </div>
 
-  <!-- あなたのアプリ本体 -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>
