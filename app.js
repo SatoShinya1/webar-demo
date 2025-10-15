@@ -7,38 +7,35 @@ const setStatus = (text, ok=false) => {
   el.style.background = ok ? 'rgba(0,160,0,.85)' : 'rgba(200,0,0,.85)';
 };
 
-(async () => {
-  console.log('[app] init');
-  setStatus('読み込み中…');
+const startOverlay = document.getElementById('start');
+const startBtn = document.getElementById('startBtn');
 
-  // ★ まずは「必ず動く既知ターゲット」で検証
-  //   カード画像 → https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.png
+(async () => {
+  setStatus('準備中…');
+
+  // まずは“必ず動く既知ターゲット”で検証
   const mindarThree = new MindARThree({
     container: document.body,
     imageTargetSrc:
       'https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind',
-    // 重要：バックカメラ固定
     uiScanning: true,
     uiLoading: true,
     maxTrack: 1,
     warmupTolerance: 5,
     filterMinCF: 0.0001,
     filterBeta: 10000,
-    // ビデオ設定（バックカメラを強制）
-    // ※ MindAR 1.2.5 は内部で設定しますが、端末によっては front になることがあるため指定
-    videoSetting: { facingMode: { exact: 'environment' } }
+    // まずは environment を理想指定（失敗したら後でフォールバック）
+    videoSetting: { facingMode: { ideal: 'environment' } }
   });
 
   const { renderer, scene, camera } = mindarThree;
   scene.add(new THREE.AmbientLight(0xffffff, 1));
 
   const anchor = mindarThree.addAnchor(0);
+  anchor.onTargetFound = () => { setStatus('FOUND #0', true); };
+  anchor.onTargetLost  = () => { setStatus('LOST  #0', false); };
 
-  // 検出イベントを画面表示
-  anchor.onTargetFound = () => { console.log('FOUND #0'); setStatus('FOUND #0', true); };
-  anchor.onTargetLost  = () => { console.log('LOST  #0');  setStatus('LOST  #0', false); };
-
-  // アンカー位置の可視化
+  // デバッグ可視化
   const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(0.2,0.2),
     new THREE.MeshBasicMaterial({color:0x00ff00, transparent:true, opacity:0.4, side:THREE.DoubleSide})
@@ -69,18 +66,35 @@ const setStatus = (text, ok=false) => {
     return base.applyQuaternion(anchor.group.quaternion).normalize();
   };
 
-  // カメラ起動
-  try {
-    await mindarThree.start();
-    console.log('[app] camera started');
-    setStatus('スキャン中…（カード画像を映してください）', false);
-  } catch (e) {
-    console.error('[app] camera start failed', e);
-    setStatus('カメラ開始失敗（HTTPS/権限を確認）', false);
-    alert('カメラを開始できませんでした。HTTPSとSafariのカメラ許可を確認してください。');
-    return;
-  }
+  // --- 起動関数（ユーザー操作から呼ぶ）
+  const startAR = async () => {
+    setStatus('カメラ起動…');
+    try {
+      await mindarThree.start();                // ここで許可ダイアログが出る想定
+      setStatus('スキャン中…（カード画像を映してください）');
+      startOverlay.style.display = 'none';
+    } catch (e) {
+      // 一部端末で environment 指定がこける → user へフォールバック
+      console.warn('start failed, fallback to user camera', e);
+      try {
+        mindarThree.stop(); // 念のため
+      } catch {}
+      // フォールバック：前面
+      mindarThree.video.video.srcObject?.getTracks().forEach(t=>t.stop());
+      mindarThree.params.videoSetting = { facingMode: 'user' };
+      try {
+        await mindarThree.start();
+        setStatus('スキャン中（前面）…カード画像を映して確認）');
+        startOverlay.style.display = 'none';
+      } catch (e2) {
+        console.error('camera start failed', e2);
+        setStatus('カメラ開始失敗：Safariのサイト別設定とHTTPSを確認', false);
+        alert('カメラを開始できませんでした。Safariのアドレスバー左「ぁA」> Webサイトの設定 > カメラ を「許可」にし、ページを再読み込みしてください。');
+      }
+    }
+  };
 
+  // ループ
   const clock = new THREE.Clock();
   (function loop(){
     const dt = clock.getDelta();
@@ -95,4 +109,7 @@ const setStatus = (text, ok=false) => {
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   })();
+
+  // ボタンから起動（iOSはジェスチャ起点が安定）
+  startBtn.onclick = startAR;
 })();
