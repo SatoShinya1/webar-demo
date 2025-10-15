@@ -1,18 +1,30 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SANITY v1</title>
-<style>body{font-family:system-ui;margin:20px}</style>
-<h1>SANITY v1</h1>
-<p id="msg">まだ押してない</p>
-<button id="btn">押すと色と文言が変わる</button>
+<title>CAM INLINE v1</title>
+<style>
+  body{font-family:system-ui;margin:20px}
+  video{width:90vw;max-width:480px;background:#000}
+  #err{white-space:pre-wrap;color:#b00;margin-top:8px}
+</style>
+<h1>CAM INLINE v1</h1>
+<button id="back">Start (Back)</button>
+<button id="front">Start (Front)</button>
+<div id="err"></div>
+<video id="v" playsinline autoplay muted></video>
 <script>
-  // ページ読み込み時に必ず走る
-  console.log('SANITY: JS loaded');
-  document.getElementById('btn').onclick = () => {
-    const p = document.getElementById('msg');
-    p.textContent = 'JS実行OK！';
-    p.style.color = '#0a0';
-    alert('JS OK（アラートが出たらJSは動いています）');
-  };
+  const v = document.getElementById('v');
+  const err = document.getElementById('err');
+  function show(e){ err.textContent = 'ERROR: ' + (e?.name? e.name+': '+e.message : (e?.message||e)); }
+  async function startCam(facing){
+    try{
+      err.textContent = '';
+      if (v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: facing }, audio:false });
+      v.srcObject = stream;
+    }catch(e){ show(e); }
+  }
+  document.getElementById('back').onclick = () => startCam('environment');
+  document.getElementById('front').onclick = () => startCam('user');
+  console.log('CAM INLINE loaded');
 </script>
