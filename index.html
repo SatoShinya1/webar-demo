@@ -4,16 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Marker AR (Z移動)</title>
-
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-      "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.esm.js"
-    }
-  }
-  </script>
   <style>
     body{margin:0;overflow:hidden}
     #hud{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
@@ -22,9 +12,12 @@
             padding:6px 10px;border-radius:8px;font-weight:700;z-index:11;color:#fff}
     #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0009;z-index:20}
     #start button{font-size:18px;padding:12px 20px;border-radius:10px}
+    #error{position:fixed;left:0;right:0;top:0;background:#c00;color:#fff;padding:8px;display:none;z-index:30;
+           font-family:system-ui, sans-serif;white-space:pre-wrap}
   </style>
 </head>
 <body>
+  <div id="error"></div>
   <div id="status">INIT…</div>
 
   <div id="start">
