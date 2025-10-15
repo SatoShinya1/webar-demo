@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Marker AR (Z軸移動)</title>
+  <style>
+    body{margin:0;overflow:hidden}
+    #hud{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
+         padding:10px;background:rgba(0,0,0,.25);backdrop-filter:blur(4px)}
+    button,label,input{font-size:14px}
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <button data-move="forward">前へ(Z+)</button>
+    <button data-move="back">後ろへ(Z-)</button>
+    <button data-move="left">左へ(X-)</button>
+    <button data-move="right">右へ(X+)</button>
+    <label>速度<input id="speed" type="range" min="0" max="10" step="0.1" value="2"></label>
+    <button id="reset">リセット</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/three@0.158/examples/jsm/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar/dist/mindar-image-three.prod.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
