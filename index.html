@@ -3,7 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Marker AR (Z軸移動)</title>
+  <title>Marker AR (Z移動)</title>
+
+  <!-- A) importmap: three と mindar-image-three をESMで読み込む -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+    }
+  }
+  </script>
+
   <style>
     body{margin:0;overflow:hidden}
     #hud{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
@@ -21,9 +33,7 @@
     <button id="reset">リセット</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/three@0.158/examples/jsm/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar/dist/mindar-image-three.prod.js"></script>
+  <!-- B) あなたのアプリコード（ESM） -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>
